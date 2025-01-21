@@ -1869,6 +1869,15 @@ expand it.
     implied by 2 [`-v`](#opt) options) outputs the exists message without the
     INFO suffix.
 
+0.  `--rename-existing`
+
+    This tells rsync to rename files on the destination if they already exist 
+    on the destination.  If rename is not possible, revert to ignore existing
+    behavior.  See also [`--ignore-existing`](#opt).
+
+    This option is a [TRANSFER RULE](#TRANSFER_RULES), so don't expect any
+    exclude side effects.
+
 0.  `--remove-source-files`
 
     This tells rsync to remove from the sending side the files (meaning
