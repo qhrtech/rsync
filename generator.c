@@ -1490,7 +1490,7 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 		}
 
 		if (renamed == 1) {
-			if (DEBUG_GTE(RENAME, 1) {
+			if (DEBUG_GTE(RENAME, 1)) {
 				rprintf(FINFO, "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
 			} else {
 				rprintf(FLOG,  "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
