@@ -26,6 +26,7 @@
 extern int am_server;
 extern int flist_eof;
 extern int quiet;
+extern int log_progress;
 extern int need_unsorted_flist;
 extern int output_needs_newline;
 extern int stdout_format_has_i;
@@ -46,6 +47,8 @@ struct progress_history {
 	struct timeval time;
 	OFF_T ofs;
 };
+
+time_t last_time_logged_progress = 0;
 
 static struct progress_history ph_start;
 static struct progress_history ph_list[PROGRESS_HISTORY_SECS];
@@ -72,6 +75,7 @@ static void rprint_progress(OFF_T ofs, OFF_T size, struct timeval *now, int is_l
 	const char *units;
 	unsigned long diff;
 	double rate, remain;
+	time_t now_epoch;
 	int pct;
 
 	if (is_last) {
@@ -126,8 +130,21 @@ static void rprint_progress(OFF_T ofs, OFF_T size, struct timeval *now, int is_l
 
 	output_needs_newline = 0;
 	pct = ofs == size ? 100 : (int) (100.0 * ofs / size);
-	rprintf(FCLIENT, "\r%15s %3d%% %7.2f%s %s%s",
-		human_num(ofs), pct, rate, units, rembuf, eol);
+
+	if (log_progress) {
+        now_epoch = time(NULL);
+        if (is_last || now_epoch - last_time_logged_progress >= 60) {
+            last_time_logged_progress = now_epoch;
+            rprintf(FCLIENT, "\r%15s %3d%% %7.2f%s %s%s",
+            	human_num(ofs), pct, rate, units, rembuf, eol);
+        }
+        if (is_last)
+            last_time_logged_progress = 0;
+    } else {
+        rprintf(FCLIENT, "\r%15s %3d%% %7.2f%s %s%s",
+            human_num(ofs), pct, rate, units, rembuf, eol);
+    }
+
 	if (!is_last && !quiet) {
 		output_needs_newline = 1;
 		rflush(FCLIENT);

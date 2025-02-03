@@ -113,6 +113,7 @@ int mkpath_dest_arg = 0;
 int allow_inc_recurse = 1;
 int xfer_dirs = -1;
 int am_daemon = 0;
+int log_progress = 0;
 int connect_timeout = 0;
 int keep_partial = 0;
 int safe_symlinks = 0;
@@ -759,6 +760,7 @@ static struct poptOption long_options[] = {
   {0,                 'P', POPT_ARG_NONE,   0, 'P', 0, 0 },
   {"progress",         0,  POPT_ARG_VAL,    &do_progress, 1, 0, 0 },
   {"no-progress",      0,  POPT_ARG_VAL,    &do_progress, 0, 0, 0 },
+  {"log-progress",     0,  POPT_ARG_VAL,    &log_progress, 1, 0, 0 },
   {"partial",          0,  POPT_ARG_VAL,    &keep_partial, 1, 0, 0 },
   {"no-partial",       0,  POPT_ARG_VAL,    &keep_partial, 0, 0, 0 },
   {"partial-dir",      0,  POPT_ARG_STRING, &partial_dir, 0, 0, 0 },
@@ -2338,6 +2340,9 @@ int parse_arguments(int *argc_p, const char ***argv_p)
 		stdout_format_has_i = itemize_changes;
 		log_before_transfer = !am_server;
 	}
+
+	if (log_progress && !do_progress)
+	    do_progress = 1;
 
 	if (do_progress && !am_server) {
 		if (!log_before_transfer && INFO_EQ(NAME, 0))

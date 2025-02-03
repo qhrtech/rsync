@@ -209,7 +209,7 @@ void send_files(int f_in, int f_out)
 	struct file_struct *file;
 	int phase = 0, max_phase = protocol_version >= 29 ? 2 : 1;
 	int itemizing = am_server ? logfile_format_has_i : stdout_format_has_i;
-	enum logcode log_code = log_before_transfer ? FLOG : FINFO;
+	/* enum logcode log_code = log_before_transfer ? FLOG : FINFO; */
 	int f_xfer = write_batch < 0 ? batch_fd : f_out;
 	int save_io_error = io_error;
 	int ndx, j;
@@ -414,9 +414,10 @@ void send_files(int f_in, int f_out)
 		if (DEBUG_GTE(DELTASUM, 2))
 			rprintf(FINFO, "calling match_sums %s%s%s\n", path,slash,fname);
 
-		if (log_before_transfer)
+		if (log_before_transfer) {
 			log_item(FCLIENT, file, iflags, NULL);
-		else if (!am_server && INFO_GTE(NAME, 1) && INFO_EQ(PROGRESS, 1))
+			log_item(FLOG, file, &initial_stats, iflags, NULL);
+		} else if (!am_server && INFO_GTE(NAME, 1) && INFO_EQ(PROGRESS, 1))
 			rprintf(FCLIENT, "%s\n", fname);
 
 		set_compression(fname);
@@ -427,7 +428,8 @@ void send_files(int f_in, int f_out)
 		else if (want_progress_now)
 			instant_progress(fname);
 
-		log_item(log_code, file, iflags, NULL);
+		if (!log_before_transfer)
+		    log_item(FINFO, file, &initial_stats, iflags, NULL);
 
 		if (mbuf) {
 			j = unmap_file(mbuf);
