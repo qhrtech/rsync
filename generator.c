@@ -1412,7 +1412,7 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 		STRUCT_STAT st;
 		int count, malloc_len, renamed, fname_len, ext_len, ret, i;
 
-        if (DEBUG_GTE(RENAME, 2))
+        if (DEBUG_GTE(RENAME, 1))
 			rprintf(FINFO, "starting rename-existing processing for fname %s\n", fname);
 
 		fname_len = strlen(fname);
@@ -1442,12 +1442,12 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 			    count,
 			    ext ? ext : "");
 
-			if (DEBUG_GTE(RENAME, 2))
+			if (DEBUG_GTE(RENAME, 1))
 				rprintf(FINFO, "attempting to use new_fname of %s\n", new_fname);
 
 			/* verify MAXPATHLEN */
 			i = strlen(new_fname);
-			if (DEBUG_GTE(RENAME, 2))
+			if (DEBUG_GTE(RENAME, 1))
 				rprintf(FINFO, "checking MAXPATHLEN: new_fname fullpath length = %d, MAXPATHLEN = %d\n", i, MAXPATHLEN);
 			if (i > MAXPATHLEN) {
 				rsyserr(FERROR, ENAMETOOLONG, "error new_fname fullpath length (%d) is larger than MAXPATHLEN (%d)", i, MAXPATHLEN);
@@ -1458,7 +1458,7 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 			slash = strrchr(new_fname, '/');
 			if (slash != NULL)
 				i = strlen(slash) - 1;			/* subtract 1 for the slash itself */
-			if (DEBUG_GTE(RENAME, 2))
+			if (DEBUG_GTE(RENAME, 1))
 				rprintf(FINFO, "checking NAME_MAX: new_fname filename length = %d, NAME_MAX = %d\n", i, NAME_MAX);
 			if (i > NAME_MAX) {
 				rsyserr(FERROR, ENAMETOOLONG, "error new_fname filename length (%d) is larger than NAME_MAX (%d)", i, NAME_MAX);
@@ -1468,10 +1468,10 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 			/* attempt to move the file */
 			ret = link_stat(new_fname, &st, 0);
 			if (ret != 0 && errno == ENOENT) {
-				if (DEBUG_GTE(RENAME, 2))
+				if (DEBUG_GTE(RENAME, 1))
 					rprintf(FINFO, "new_fname %s does not exist\n", new_fname);
 				if (do_rename(fname, new_fname) == 0) {
-					if (DEBUG_GTE(RENAME, 2))
+					if (DEBUG_GTE(RENAME, 1))
 						rprintf(FINFO, "do_rename from %s to %s succeeded\n", fname, new_fname);
 					renamed = 1;
 					break;
@@ -1480,7 +1480,7 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 				}
 			} else {
 				if (ret == 0) {
-					if (DEBUG_GTE(RENAME, 2))
+					if (DEBUG_GTE(RENAME, 1))
 						rprintf(FINFO, "new_fname %s exists\n", new_fname);
 				} else {
 					rsyserr(FERROR, errno, "link_stat new_fname failed");
@@ -1490,7 +1490,7 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 		}
 
 		if (renamed == 1) {
-			if (DEBUG_GTE(RENAME, 2)) {
+			if (DEBUG_GTE(RENAME, 1) {
 				rprintf(FINFO, "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
 			} else {
 				rprintf(FLOG,  "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
