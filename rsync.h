@@ -1456,7 +1456,8 @@ extern short info_levels[], debug_levels[];
 #define DEBUG_OWN (DEBUG_NSTR+1)
 #define DEBUG_PROTO (DEBUG_OWN+1)
 #define DEBUG_RECV (DEBUG_PROTO+1)
-#define DEBUG_SEND (DEBUG_RECV+1)
+#define DEBUG_RENAME (DEBUG_RECV+1)
+#define DEBUG_SEND (DEBUG_RENAME+1)
 #define DEBUG_TIME (DEBUG_SEND+1)
 
 #define COUNT_DEBUG (DEBUG_TIME+1)

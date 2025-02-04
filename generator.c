@@ -59,6 +59,7 @@ extern int delay_updates;
 extern int update_only;
 extern int human_readable;
 extern int ignore_existing;
+extern int rename_existing;
 extern int ignore_non_existing;
 extern int want_xattr_optim;
 extern int modify_window;
@@ -1401,6 +1402,109 @@ static void recv_generator(char *fname, struct file_struct *file, int ndx,
 			handle_skipped_hlink(file, itemizing, code, f_out);
 #endif
 		goto cleanup;
+    }
+
+	/* --rename-existing */
+	/* If rename is not possible, revert to --ignore-existing behavior */
+	if (rename_existing > 0 && statret == 0 && S_ISREG(sx.st.st_mode)
+	 && (!is_dir || !S_ISDIR(sx.st.st_mode))) {
+		char *new_fname, *ext, *slash;
+		STRUCT_STAT st;
+		int count, malloc_len, renamed, fname_len, ext_len, ret, i;
+
+        if (DEBUG_GTE(RENAME, 1))
+			rprintf(FINFO, "starting rename-existing processing for fname %s\n", fname);
+
+		fname_len = strlen(fname);
+		slash = strrchr(fname, '/');
+		ext = strrchr(fname, '.');
+		if (slash > ext)
+			ext = NULL;
+		if (ext == NULL)
+			ext_len = 0;
+		else
+			ext_len = strlen(ext);
+
+		/* alloc new filename mem, fname length +6 (+1 char for _, +4 chars for 1-9999 unique number, and +1 for \0) */
+		malloc_len = fname_len + 6;
+		new_fname = malloc(malloc_len);
+		if (new_fname == NULL) {
+			rsyserr(FERROR, errno, "new_fname malloc failed");
+			goto cleanup;
+		}
+
+		count = 1;
+		renamed = 0;
+		while (renamed != 1 && count <= 9999) {
+			/* build new filename */
+			snprintf(new_fname, malloc_len, "%.*s_%d%s",
+			    fname_len - ext_len, fname,
+			    count,
+			    ext ? ext : "");
+
+			if (DEBUG_GTE(RENAME, 1))
+				rprintf(FINFO, "attempting to use new_fname of %s\n", new_fname);
+
+			/* verify MAXPATHLEN */
+			i = strlen(new_fname);
+			if (DEBUG_GTE(RENAME, 1))
+				rprintf(FINFO, "checking MAXPATHLEN: new_fname fullpath length = %d, MAXPATHLEN = %d\n", i, MAXPATHLEN);
+			if (i > MAXPATHLEN) {
+				rsyserr(FERROR, ENAMETOOLONG, "error new_fname fullpath length (%d) is larger than MAXPATHLEN (%d)", i, MAXPATHLEN);
+				break;
+			}
+
+			/* verify NAME_MAX, i is already set to strlen(new_fname), don't re-set if no slash found */
+			slash = strrchr(new_fname, '/');
+			if (slash != NULL)
+				i = strlen(slash) - 1;			/* subtract 1 for the slash itself */
+			if (DEBUG_GTE(RENAME, 1))
+				rprintf(FINFO, "checking NAME_MAX: new_fname filename length = %d, NAME_MAX = %d\n", i, NAME_MAX);
+			if (i > NAME_MAX) {
+				rsyserr(FERROR, ENAMETOOLONG, "error new_fname filename length (%d) is larger than NAME_MAX (%d)", i, NAME_MAX);
+				break;
+			}
+
+			/* attempt to move the file */
+			ret = link_stat(new_fname, &st, 0);
+			if (ret != 0 && errno == ENOENT) {
+				if (DEBUG_GTE(RENAME, 1))
+					rprintf(FINFO, "new_fname %s does not exist\n", new_fname);
+				if (do_rename(fname, new_fname) == 0) {
+					if (DEBUG_GTE(RENAME, 1))
+						rprintf(FINFO, "do_rename from %s to %s succeeded\n", fname, new_fname);
+					renamed = 1;
+					break;
+				} else {
+					rsyserr(FERROR, errno, "do_rename from %s to %s failed", fname, new_fname);
+				}
+			} else {
+				if (ret == 0) {
+					if (DEBUG_GTE(RENAME, 1))
+						rprintf(FINFO, "new_fname %s exists\n", new_fname);
+				} else {
+					rsyserr(FERROR, errno, "link_stat new_fname failed");
+				}
+			}
+			count++;
+		}
+
+		if (renamed == 1) {
+			if (DEBUG_GTE(RENAME, 1)) {
+				rprintf(FINFO, "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
+			} else {
+				rprintf(FLOG,  "rename-existing on receiver success (%s renamed to %s)\n", fname, new_fname);
+			}
+		} else {
+			rprintf(FERROR, "rename-existing on receiver did not succeed for %s\n", fname);
+			free(new_fname);
+			goto cleanup;
+		}
+		free(new_fname);
+
+		/* Redo statret, since the file has moved */
+		statret = link_stat(fname, &sx.st, keep_dirlinks && is_dir);
+        stat_errno = errno;
 	}
 
 	fnamecmp = fname;

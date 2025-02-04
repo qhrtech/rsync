@@ -125,6 +125,7 @@ int bwlimit = 0;
 int fuzzy_basis = 0;
 size_t bwlimit_writemax = 0;
 int ignore_existing = 0;
+int rename_existing = 0;
 int ignore_non_existing = 0;
 int need_messages_from_generator = 0;
 int max_delete = INT_MIN;
@@ -229,7 +230,7 @@ struct chmod_mode_struct *chmod_modes = NULL;
 static const char *debug_verbosity[] = {
 	/*0*/ NULL,
 	/*1*/ NULL,
-	/*2*/ "BIND,CMD,CONNECT,DEL,DELTASUM,DUP,FILTER,FLIST,ICONV",
+	/*2*/ "BIND,CMD,CONNECT,DEL,DELTASUM,DUP,FILTER,FLIST,ICONV,RENAME",
 	/*3*/ "ACL,BACKUP,CONNECT2,DELTASUM2,DEL2,EXIT,FILTER2,FLIST2,FUZZY,GENR,OWN,RECV,SEND,TIME",
 	/*4*/ "CMD2,DELTASUM3,DEL3,EXIT2,FLIST3,ICONV2,OWN2,PROTO,TIME2",
 	/*5*/ "CHDIR,DELTASUM4,FLIST4,FUZZY2,HASH,HLINK",
@@ -310,6 +311,7 @@ static struct output_struct debug_words[COUNT_DEBUG+1] = {
 	DEBUG_WORD(OWN, W_REC, "Debug ownership changes in users & groups (levels 1-2)"),
 	DEBUG_WORD(PROTO, W_CLI|W_SRV, "Debug protocol information"),
 	DEBUG_WORD(RECV, W_REC, "Debug receiver functions"),
+	DEBUG_WORD(RENAME, W_REC, "Debug rename functions"),
 	DEBUG_WORD(SEND, W_SND, "Debug sender functions"),
 	DEBUG_WORD(TIME, W_REC, "Debug setting of modified times (levels 1-2)"),
 	{ NULL, "--debug", 0, 0, 0, 0 }
@@ -696,6 +698,7 @@ static struct poptOption long_options[] = {
   {"update",          'u', POPT_ARG_NONE,   &update_only, 0, 0, 0 },
   {"existing",         0,  POPT_ARG_NONE,   &ignore_non_existing, 0, 0, 0 },
   {"ignore-non-existing",0,POPT_ARG_NONE,   &ignore_non_existing, 0, 0, 0 },
+  {"rename-existing",  0,  POPT_ARG_NONE,   &rename_existing, 0, 0, 0 },
   {"ignore-existing",  0,  POPT_ARG_NONE,   &ignore_existing, 0, 0, 0 },
   {"max-size",         0,  POPT_ARG_STRING, &max_size_arg, OPT_MAX_SIZE, 0, 0 },
   {"min-size",         0,  POPT_ARG_STRING, &min_size_arg, OPT_MIN_SIZE, 0, 0 },
@@ -2904,6 +2907,9 @@ void server_options(char **args, int *argc_p)
 
 		if (ignore_existing)
 			args[ac++] = "--ignore-existing";
+
+		if (rename_existing)
+			args[ac++] = "--rename-existing";
 
 		/* Backward compatibility: send --existing, not --ignore-non-existing. */
 		if (ignore_non_existing)
