@@ -476,6 +476,7 @@ has its own detailed description later in this manpage.
 --rsync-path=PROGRAM     specify the rsync to run on remote machine
 --existing               skip creating new files on receiver
 --ignore-existing        skip updating files that exist on receiver
+--rename-existing        rename files on receiver that already exist on receiver
 --remove-source-files    sender removes synchronized files (non-dir)
 --del                    an alias for --delete-during
 --delete                 delete extraneous files from dest dirs
@@ -537,6 +538,7 @@ has its own detailed description later in this manpage.
 --8-bit-output, -8       leave high-bit chars unescaped in output
 --human-readable, -h     output numbers in a human-readable format
 --progress               show progress during transfer
+--log-progress           log progress on client during transfer, disables showing progress
 -P                       same as --partial --progress
 --itemize-changes, -i    output a change-summary for all updates
 --remote-option=OPT, -M  send OPTION to the remote side only
@@ -3523,6 +3525,11 @@ expand it.
     total count of files in the file list is still going to increase (and each
     time it does, the count of files left to check will increase by the number
     of the files added to the list).
+
+0.  `--progress`
+
+    This option tells rsync to log progress on the client during transfer. Using
+    this option will disable show-progress.
 
 0.  `-P`
 
