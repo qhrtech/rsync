@@ -416,7 +416,7 @@ void send_files(int f_in, int f_out)
 
 		if (log_before_transfer) {
 			log_item(FCLIENT, file, iflags, NULL);
-			log_item(FLOG, file, &initial_stats, iflags, NULL);
+			log_item(FLOG, file, iflags, NULL);
 		} else if (!am_server && INFO_GTE(NAME, 1) && INFO_EQ(PROGRESS, 1))
 			rprintf(FCLIENT, "%s\n", fname);
 
@@ -429,7 +429,7 @@ void send_files(int f_in, int f_out)
 			instant_progress(fname);
 
 		if (!log_before_transfer)
-		    log_item(FINFO, file, &initial_stats, iflags, NULL);
+		    log_item(FINFO, file, iflags, NULL);
 
 		if (mbuf) {
 			j = unmap_file(mbuf);
