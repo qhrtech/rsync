@@ -135,7 +135,7 @@ static void rprint_progress(OFF_T ofs, OFF_T size, struct timeval *now, int is_l
         now_epoch = time(NULL);
         if (is_last || now_epoch - last_time_logged_progress >= 60) {
             last_time_logged_progress = now_epoch;
-            rprintf(FCLIENT, "\r%15s %3d%% %7.2f%s %s%s",
+            rprintf(FLOG, "\r%15s %3d%% %7.2f%s %s%s",
             	human_num(ofs), pct, rate, units, rembuf, eol);
         }
         if (is_last)
